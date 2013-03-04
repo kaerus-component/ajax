@@ -2,7 +2,7 @@
 	"name": "ajax",
 	"version": "0.0.1",
 	"description": "Promised Ajax",
-	"repo":"kaerus/component/ajax",
+	"repo":"kaerus-component/ajax",
 	"scripts": ["index.js"],
-	"dependencies": {"kaerus/component/promise":"*"}
+	"dependencies": {"kaerus-component/promise":"*"}
 }
