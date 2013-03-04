@@ -1,0 +1,8 @@
+{
+	"name": "ajax",
+	"version": "0.0.1",
+	"description": "Promised Ajax",
+	"repo":"kaerus/components/ajax",
+	"scripts": ["index.js"],
+	"dependencies": {"kaerus/components/promise":"*"}
+}
