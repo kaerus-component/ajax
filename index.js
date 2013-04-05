@@ -1,16 +1,23 @@
 var Promise = require('promise');
 
+/* default request timeout */
+var DEFAULT_TIMEOUT = 5000;
+
+/* ReadyState status codes */
+var XHR_CLOSED = 0,
+    XHR_OPENED = 1,
+    XHR_SENT = 2,
+    XHR_RECEIVED = 3,
+    XHR_DONE = 4; 
 
 function Ajax(method,url,options,data) {
     var res = new Promise(),
         xhr = new XMLHttpRequest;
 
     options = options ? options : {};
-    data = data ? data : null;
 
-    if(typeof options !== 'object') options = {url:options};
     if(!options.async) options.async = true;
-    if(!options.timeout) options.timeout = 5000;
+    if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
     if(!options.headers) options.headers = {};
     if(!options.headers.accept) options.headers.accept = "application/json";
 
@@ -18,7 +25,6 @@ function Ajax(method,url,options,data) {
 
     function parseHeaders(h) {
         var ret = {}, key, val, i;
-
 
         h.split('\n').forEach(function(header) {
             if((i=header.indexOf(':')) > 0) {
@@ -32,19 +38,23 @@ function Ajax(method,url,options,data) {
     }
 
     xhr.onreadystatechange = function() {
-        if(xhr.readyState === 4 && xhr.status) {
-            var msg = xhr.responseText;
-            xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
+        switch(xhr.readyState) {
+            case XHR_DONE:
+                if(xhr.status) {
+                    var msg = xhr.responseText;
+                    xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
 
-            if(options.headers.accept.indexOf('json') >= 0)
-                try { msg = JSON.parse(msg) } catch(err) {}
+                    if(options.headers.accept.indexOf('json') >= 0)
+                        try { msg = JSON.parse(msg) } catch(err) {}
 
-            if(xhr.status < 400) res.fulfill(msg);
-            else res.reject(msg);     
-        }
+                    if(xhr.status < 400) res.fulfill(msg);
+                    else res.reject(msg);     
+                }   
+                break;
+        }            
     }
 
-    xhr.open(method,url,options.async);
+    xhr.open(method,url.toString(),options.async);
 
     /* set request headers */
     Object.keys(options.headers).forEach(function(header) {
