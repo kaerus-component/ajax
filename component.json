@@ -4,5 +4,6 @@
 	"description": "Promised Ajax",
 	"repo":"kaerus-component/ajax",
 	"scripts": ["index.js"],
-	"dependencies": {"kaerus-component/promise":"*"}
+	"dependencies": {"kaerus-component/promise":"*"},
+	"license": "Apache2_0"
 }
