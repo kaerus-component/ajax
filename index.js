@@ -30,20 +30,20 @@ function Ajax(method,url,options,data) {
     options = options ? options : {};
 
     if(!options.async) options.async = true;
+    
     if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
+    
     if(!options.headers) options.headers = {};
+    
     if(!options.headers.accept){
-        if(!options.accept) options.accept = {type:'application',format:'json'};
-        else if(typeof options.accept === 'string') {
-            var a, i = 0, type = 'application',format = 'json';
-            a = options.accept.split('/');
-            if(a.lenght) type = a[i++];
-            format = a[i]; 
+        if(!options.accept) options.accept = 'application/json';
+        options.headers.accept = options.accept;
+    }
 
-            options.accept = {type:type,format:format};
+    if(!options.headers['accept-charset']){
+        if(options.charset){
+            options.headers['accept-charset'] = options.charset;
         }
-
-        options.headers.accept = options.accept.type + "/" + options.accept.format;
     }
     
     res.attach(xhr);
@@ -66,11 +66,15 @@ function Ajax(method,url,options,data) {
         switch(xhr.readyState) {
             case XHR_DONE:
                     var msg = xhr.responseText;
+
                     xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
 
-                    if(options.headers.accept.indexOf('json') >= 0)
+                    if((xhr.headers['content-type'] && 
+                        !(xhr.headers['content-type'].indexOf('json') < 0)) ||
+                        !(options.accept.indexOf('application/json') < 0)) {
                         try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
-
+                    }
+                        
                     if(xhr.status < 400) res.fulfill(msg);
                     else res.reject(msg);       
                 break;
