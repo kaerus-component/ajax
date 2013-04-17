@@ -1,0 +1,50 @@
+<!doctype html>
+<html>
+<head>
+	<title>Ajax test</title>
+</head>
+<body>
+	
+	<script src="../build/build.js"></script>
+	<script>
+		var Ajax = require('ajax');
+
+		var text = document.createElement('div');
+		document.body.appendChild(text);
+		text.innerHMTL = "Loading text";
+
+		Ajax.get("test.file").then(function(content){
+			console.log("content",content);
+			text.innerHTML = "Content: " + content;		
+		},function(error){
+			console.error(error);
+			text.innerHTML = "Error: " + error;
+		},{accept:'text/plain'});
+
+		var json = document.createElement('div');
+		document.body.appendChild(json);
+		json.innerHMTL = "Loading json";
+
+		Ajax.get("test.json").then(function(content){
+			console.log("content",content);
+			text.innerHTML = "Content: " + JSON.stringify(content);		
+		},function(error){
+			console.error(error);
+			json.innerHTML = "Error: " + error;
+		},{accept:'application/json'});
+
+		var html = document.createElement('div');
+		document.body.appendChild(html);
+		html.innerHMTL = "Loading html";
+
+		Ajax.get("test.html").then(function(content){
+			console.log("content",content);
+			html.innerHTML = "Content: " + content;		
+		},function(error){
+			console.error(error);
+			html.innerHTML = "Error: " + error;
+		},{accept:'text/html'});
+
+	</script>
+</body>
+</html>

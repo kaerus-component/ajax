@@ -3,6 +3,19 @@ var Promise = require('promise');
 /* default request timeout */
 var DEFAULT_TIMEOUT = 5000;
 
+/* Get browser xhr object */
+var Xhr = (function() {
+    if(typeof window.XMLHttpRequest !== 'undefined' ) {
+        return window['XMLHttpRequest'];
+    } else if(typeof window.ActiveXObject !== 'undefined') {
+        ['Msxml2.XMLHTTP.6.0','Msxml2.XMLHTTP.3.0','Microsoft.XMLHTTP'].forEach(function(x) {
+            try { return window.ActiveXObject(x) } catch (e) {}
+        }); 
+        throw new Error('XHR ActiveXObject failed');
+    } 
+    throw new Error('XHR support not found');
+}());
+
 /* ReadyState status codes */
 var XHR_CLOSED = 0,
     XHR_OPENED = 1,
@@ -12,7 +25,7 @@ var XHR_CLOSED = 0,
 
 function Ajax(method,url,options,data) {
     var res = new Promise(),
-        xhr = new XMLHttpRequest;
+        xhr = new Xhr();
 
     options = options ? options : {};
 
