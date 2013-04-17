@@ -19,8 +19,20 @@ function Ajax(method,url,options,data) {
     if(!options.async) options.async = true;
     if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
     if(!options.headers) options.headers = {};
-    if(!options.headers.accept) options.headers.accept = "application/json";
+    if(!options.headers.accept){
+        if(!options.accept) options.accept = {type:'application',format:'json'};
+        else if(typeof options.accept === 'string') {
+            var a, i = 0, type = 'application',format = 'json';
+            a = options.accept.split('/');
+            if(a.lenght) type = a[i++];
+            format = a[i]; 
 
+            options.accept = {type:type,format:format};
+        }
+
+        options.headers.accept = options.accept.type + "/" + options.accept.format;
+    }
+    
     res.attach(xhr);
 
     function parseHeaders(h) {
@@ -40,16 +52,14 @@ function Ajax(method,url,options,data) {
     xhr.onreadystatechange = function() {
         switch(xhr.readyState) {
             case XHR_DONE:
-                if(xhr.status) {
                     var msg = xhr.responseText;
                     xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
 
                     if(options.headers.accept.indexOf('json') >= 0)
-                        try { msg = JSON.parse(msg) } catch(err) {}
+                        try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
 
                     if(xhr.status < 400) res.fulfill(msg);
-                    else res.reject(msg);     
-                }   
+                    else res.reject(msg);       
                 break;
         }            
     }
@@ -77,6 +87,4 @@ function Ajax(method,url,options,data) {
         }
     });
 
-module.exports = Ajax;    
-    
-   
+module.exports = Ajax;
