@@ -36,14 +36,15 @@ function Ajax(method,url,options,data) {
     if(!options.headers) options.headers = {};
     
     if(!options.headers.accept){
-        if(!options.accept) options.accept = 'application/json';
-        options.headers.accept = options.accept;
+        options.headers.accept = options.accept || 'application/json';
     }
 
-    if(!options.headers['accept-charset']){
-        if(options.charset){
-            options.headers['accept-charset'] = options.charset;
-        }
+    if(options.charset){
+        options.headers['accept-charset'] = options.charset;
+    }
+
+    if(!options.headers['content-type']){
+        options.headers['content-type'] = options.type || 'application/json';
     }
     
     res.attach(xhr);
@@ -71,7 +72,7 @@ function Ajax(method,url,options,data) {
 
                     if((xhr.headers['content-type'] && 
                         !(xhr.headers['content-type'].indexOf('json') < 0)) ||
-                        !(options.accept.indexOf('application/json') < 0)) {
+                        (options.accept && !(options.accept.indexOf('application/json') < 0)) ) {
                         try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
                     }
                         
@@ -87,6 +88,9 @@ function Ajax(method,url,options,data) {
     Object.keys(options.headers).forEach(function(header) {
         xhr.setRequestHeader(header,options.headers[header]);
     });
+
+    if(data && options.headers['content-type'].indexOf('json'))
+        data = JSON.stringify(data);
 
     /* request data */
     xhr.send(data);
