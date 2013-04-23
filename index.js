@@ -36,7 +36,7 @@ function Ajax(method,url,options,data) {
     if(!options.headers) options.headers = {};
     
     if(!options.headers.accept){
-        options.headers.accept = options.accept || 'application/json';
+        options.headers.accept = options.accept||'application/json';
     }
 
     if(options.charset){
@@ -44,7 +44,7 @@ function Ajax(method,url,options,data) {
     }
 
     if(!options.headers['content-type']){
-        options.headers['content-type'] = options.type || 'application/json';
+        options.headers['content-type'] = options.type||'application/json';
     }
     
     res.attach(xhr);
