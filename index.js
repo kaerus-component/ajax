@@ -82,7 +82,9 @@ function Ajax(method,url,options,data) {
         }            
     }
 
-    xhr.open(method,url.toString(),options.async);
+    if(typeof url !== 'string') url = url.toString();
+
+    xhr.open(method,url,options.async);
 
     /* set request headers */
     Object.keys(options.headers).forEach(function(header) {
