@@ -1,4 +1,5 @@
-var Promise = require('promise');
+var Promise = require('promise'),
+    urlParser = require('urlparser');
 
 /* default request timeout */
 var DEFAULT_TIMEOUT = 5000;
@@ -82,8 +83,14 @@ function Ajax(method,url,options,data) {
         }            
     }
 
-    if(typeof url !== 'string') url = url.toString();
+    url = urlParser.parse(url);
 
+    if(!url.host.protocol && options.protocol) url.host.protocol = options.protocol;
+    if(!url.host.hostname && options.hostname) url.host.hostname = options.hostname;
+    if(!url.host.port && options.port) url.host.port = options.port;
+
+    url = url.toString();
+    
     xhr.open(method,url,options.async);
 
     /* set request headers */
