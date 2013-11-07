@@ -5,10 +5,12 @@ var Promise = require('promise'),
 var DEFAULT_TIMEOUT = 5000;
 
 /* Get browser xhr object */
-var Xhr = (function() {
-    if(typeof window.XMLHttpRequest !== 'undefined' ) {
+var Xhr = (function() {  
+    if(window.XDomainRequest) {
+        return window.XDomainRequest;
+    } else if(window.XMLHttpRequest) {
         return window['XMLHttpRequest'];
-    } else if(typeof window.ActiveXObject !== 'undefined') {
+    } else if(window.ActiveXObject) {
         ['Msxml2.XMLHTTP.6.0','Msxml2.XMLHTTP.3.0','Microsoft.XMLHTTP'].forEach(function(x) {
             try { return window.ActiveXObject(x) } catch (e) {}
         }); 
@@ -47,8 +49,6 @@ function Ajax(method,url,options,data) {
     if(!options.headers['content-type']){
         options.headers['content-type'] = options.type||'application/json';
     }
-    
-    res.attach(xhr);
 
     function parseHeaders(h) {
         var ret = {}, key, val, i;
@@ -65,26 +65,32 @@ function Ajax(method,url,options,data) {
     }
 
     xhr.onreadystatechange = function() {
+        var msg;
         switch(xhr.readyState) {
             case XHR_DONE:
-                    var msg = xhr.responseText;
+                    msg = xhr.responseText;
+                    if(xhr.status){
+                    
+                        xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
 
-                    xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
-
-                    if((xhr.headers['content-type'] && 
-                        !(xhr.headers['content-type'].indexOf('json') < 0)) ||
-                        (options.accept && !(options.accept.indexOf('application/json') < 0)) ) {
-                        try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
-                    }
-                        
-                    if(xhr.status < 400) res.fulfill(msg);
-                    else res.reject(msg);       
+                        if((xhr.headers['content-type'] && 
+                            !(xhr.headers['content-type'].indexOf('json') < 0)) ||
+                            (options.accept && !(options.accept.indexOf('application/json') < 0)) ) {
+                            try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
+                        }
+                            
+                        if(xhr.status < 400) res.fulfill(msg);
+                        else res.reject(msg);
+                    } else res.reject(msg); // status = 0           
                 break;
         }            
     }
 
     url = urlParser.parse(url);
+    
+    if(!url.host) url.host = {};
 
+    /* merge host info with options */
     if(!url.host.protocol && options.protocol) url.host.protocol = options.protocol;
     if(!url.host.hostname && options.hostname) url.host.hostname = options.hostname;
     if(!url.host.port && options.port) url.host.port = options.port;
@@ -105,7 +111,9 @@ function Ajax(method,url,options,data) {
     xhr.send(data);
 
     /* response timeout */
-    res.timeout(options.timeout);
+    res.timeout(options.timeout,function(){
+        xhr.abort();
+    });
 
     return res;
 }

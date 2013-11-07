@@ -5,7 +5,7 @@
 </head>
 <body>
 	
-	<script src="../build/build.js"></script>
+	<script src="build.js"></script>
 	<script>
 		var Ajax = require('ajax');
 
@@ -16,7 +16,7 @@
 		Ajax.get("test.file",{accept:'text/plain'}).then(function(content){
 			text.innerHTML = "Text Content: " + content;		
 		},function(error){
-			console.error(error);
+			console.log("Error",error);
 			text.innerHTML = "Error: " + error;
 		});
 
@@ -25,9 +25,10 @@
 		json.innerHMTL = "Loading json";
 
 		Ajax.get("test.json",{accept:'application/json'}).then(function(content){
+			console.log("json:", content);
 			json.innerHTML = "JSON Content: " + JSON.stringify(content);		
 		},function(error){
-			console.error(error);
+			console.log("Error",error);
 			json.innerHTML = "Error: " + error;
 		});
 
@@ -38,7 +39,7 @@
 		Ajax.get("test.html",{accept:'text/html'}).then(function(content){
 			html.innerHTML = "HTML Content: " + content;		
 		},function(error){
-			console.error(error);
+			console.log("Error",error);
 			html.innerHTML = "Error: " + error;
 		});
 
