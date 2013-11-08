@@ -7,8 +7,8 @@
     "index.js"
   ],
   "dependencies": {
-    "kaerus-component/promise": "*",
-    "kaerus-component/urlparser": "*"
+    "kaerus-component/promise": "0.3.4",
+    "kaerus-component/urlparser": "0.3.7"
   },
   "license": "Apache2_0"
 }
