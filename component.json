@@ -1,13 +1,13 @@
 {
   "name": "ajax",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Promised Ajax",
   "repo": "kaerus-component/ajax",
   "scripts": [
     "index.js"
   ],
   "dependencies": {
-    "kaerus-component/promise": "0.3.4",
+    "kaerus-component/uP": "0.2.6",
     "kaerus-component/urlparser": "0.3.7"
   },
   "license": "Apache2_0"

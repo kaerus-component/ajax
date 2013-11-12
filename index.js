@@ -1,4 +1,4 @@
-var Promise = require('promise'),
+var uP = require('uP'),
     urlParser = require('urlparser');
 
 /* default request timeout */
@@ -27,7 +27,7 @@ var XHR_CLOSED = 0,
     XHR_DONE = 4; 
 
 function Ajax(method,url,options,data) {
-    var res = new Promise(),
+    var res = new uP(),
         xhr = new Xhr();
 
     options = options ? options : {};
