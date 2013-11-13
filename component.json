@@ -1,6 +1,6 @@
 {
   "name": "ajax",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "description": "Promised Ajax",
   "repo": "kaerus-component/ajax",
   "scripts": [
