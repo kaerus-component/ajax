@@ -7,7 +7,7 @@
     "index.js"
   ],
   "dependencies": {
-    "kaerus-component/uP": "0.2.6",
+    "kaerus-component/uP": "0.3.0",
     "kaerus-component/urlparser": "0.3.7"
   },
   "license": "Apache2_0"
