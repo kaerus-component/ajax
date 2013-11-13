@@ -1,4 +1,4 @@
-var uP = require('uP'),
+var uP = require('micropromise'),
     urlParser = require('urlparser');
 
 /* default request timeout */
