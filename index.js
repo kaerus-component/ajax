@@ -1,5 +1,4 @@
-var uP = require('micropromise'),
-    urlParser = require('urlparser');
+var urlParser = require('urlparser');
 
 /* default request timeout */
 var DEFAULT_TIMEOUT = 5000;
@@ -26,13 +25,24 @@ var XHR_CLOSED = 0,
     XHR_RECEIVED = 3,
     XHR_DONE = 4; 
 
-function Ajax(method,url,options,data) {
-    var res = new uP(),
-        xhr = new Xhr();
+var resolver = {
+    result: undefined, 
+    error: undefined,
+    onprogress: undefined, 
+    resolve: function(x){this.result = x}, 
+    reject: function(x){this.error = x},
+    timeout: function(x,f){setTimeout(f,x)},
+    progress: function(){ if(this.onprogress) this.onprogress.apply(null,arguments) }
+};
+
+function Ajax(method,url,options,data,res) {
+    var xhr = new Xhr();
 
     options = options ? options : {};
 
-    if(!options.async) options.async = true;
+    if(res && !options.async) options.async = true;
+
+    res = res ? res : Object.create(resolver);
     
     if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
     
@@ -70,22 +80,37 @@ function Ajax(method,url,options,data) {
             case XHR_DONE:
                     msg = xhr.responseText;
                     if(xhr.status){
-                    
                         xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
 
                         if((xhr.headers['content-type'] && 
-                            !(xhr.headers['content-type'].indexOf('json') < 0)) ||
-                            (options.accept && !(options.accept.indexOf('application/json') < 0)) ) {
+                            xhr.headers['content-type'].indexOf('json') >= 0) ||
+                            (options.accept && options.accept.indexOf('application/json') >= 0) ) {
                             try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
                         }
                             
-                        if(xhr.status < 400) res.fulfill(msg);
+                        if(xhr.status < 400) res.resolve(msg);
                         else res.reject(msg);
-                    } else res.reject(msg); // status = 0           
+                    } else res.reject(msg); // status = 0 (timeout or Xdomain)           
                 break;
         }            
     }
 
+    /* response timeout */
+    if(res.timeout) { 
+        res.timeout(options.timeout,function(){
+            xhr.abort();
+        });
+    }
+
+    /* report progress */
+    if(xhr.upload && res.progress) {
+        xhr.upload.onprogress = function(e){
+            e.percent = e.loaded / e.total * 100;
+            res.progress(e);
+        }
+    }
+
+    /* parse url */
     url = urlParser.parse(url);
     
     if(!url.host) url.host = {};
@@ -99,29 +124,27 @@ function Ajax(method,url,options,data) {
     
     xhr.open(method,url,options.async);
 
+    /* todo: set CORS credentials */
+
     /* set request headers */
     Object.keys(options.headers).forEach(function(header) {
         xhr.setRequestHeader(header,options.headers[header]);
     });
 
-    if(data && options.headers['content-type'].indexOf('json'))
+    /* stringify json */
+    if(data && typeof data !== 'string' && options.headers['content-type'].indexOf('json'))
         data = JSON.stringify(data);
 
     /* request data */
     xhr.send(data);
-
-    /* response timeout */
-    res.timeout(options.timeout,function(){
-        xhr.abort();
-    });
 
     return res;
 }
 
 ['head','get','put','post','delete','patch','trace','connect','options']
     .forEach(function(method) {
-        Ajax[method] = function(url,options,data) {
-            return Ajax(method,url,options,data);
+        Ajax[method] = function(url,options,data,res) {
+            return Ajax(method,url,options,data,res);
         }
     });
 
