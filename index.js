@@ -25,25 +25,56 @@ var XHR_CLOSED = 0,
     XHR_RECEIVED = 3,
     XHR_DONE = 4; 
 
-var resolver = {
-    result: undefined, 
-    error: undefined,
-    onprogress: undefined, 
-    resolve: function(x){this.result = x}, 
-    reject: function(x){this.error = x},
-    timeout: function(x,f){setTimeout(f,x)},
-    progress: function(){ if(this.onprogress) this.onprogress.apply(null,arguments) }
-};
-
 function Ajax(method,url,options,data,res) {
     var xhr = new Xhr();
 
+    if(typeof options === 'function'){
+        res = options;
+        options = null;
+        data = null;
+    } else if(typeof data === 'function'){
+        res = data;
+        data = null;
+    }
+
     options = options ? options : {};
 
-    if(res && !options.async) options.async = true;
+    if(typeof res === 'function') {
+        var clb = res;
+        res = {
+            resolve: function(x){
+                clb(undefined,x);
+            },
+            reject: function(x,c){
+                clb(c||-1,x);
+            },
+            progress: function(x){
+                clb(0,x);
+            } 
+        }
+    } else {
+        res = res ? res : {
+            resolve: function(x){ 
+                this.result = x;
+                if(this.onfulfill) this.onfulfill(x); 
+            },
+            reject: function(x){ 
+                this.error = x;
+                if(this.onreject) this.onreject(x); 
+            },
+            progress: function(x){
+                if(this.onprogress) this.onprogress = x;
+            },
+            when: function(f,r,p){
+                this.onfulfill = f;
+                this.onreject = r;
+                this.onprogress = p;
+            }
+        }
+    }
 
-    res = res ? res : Object.create(resolver);
-    
+    if(!options.async) options.async = true;
+ 
     if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
     
     if(!options.headers) options.headers = {};
@@ -89,17 +120,17 @@ function Ajax(method,url,options,data,res) {
                         }
                             
                         if(xhr.status < 400) res.resolve(msg);
-                        else res.reject(msg);
+                        else res.reject(msg,xhr.status);
                     } else res.reject(msg); // status = 0 (timeout or Xdomain)           
                 break;
         }            
     }
 
     /* response timeout */
-    if(res.timeout) { 
-        res.timeout(options.timeout,function(){
+    if(options.timeout) { 
+        setTimeout(function(){
             xhr.abort();
-        });
+        }, options.timeout);
     }
 
     /* report progress */
