@@ -91,40 +91,26 @@ function Ajax(method,url,options,data,res) {
         options.headers['content-type'] = options.type||'application/json';
     }
 
-    function parseHeaders(h) {
-        var ret = {}, key, val, i;
-
-        h.split('\n').forEach(function(header) {
-            if((i=header.indexOf(':')) > 0) {
-                key = header.slice(0,i).replace(/^[\s]+|[\s]+$/g,'').toLowerCase();
-                val = header.slice(i+1,header.length).replace(/^[\s]+|[\s]+$/g,'');
-                if(key && key.length) ret[key] = val;
-            }   
-        });
-
-        return ret;
-    }
-
     xhr.onreadystatechange = function() {
-        var msg;
         switch(xhr.readyState) {
             case XHR_DONE:
-                    msg = xhr.responseText;
                     if(xhr.status){
-                        xhr.headers = parseHeaders(xhr.getAllResponseHeaders());
-
-                        if((xhr.headers['content-type'] && 
-                            xhr.headers['content-type'].indexOf('json') >= 0) ||
-                            (options.accept && options.accept.indexOf('application/json') >= 0) ) {
-                            try { msg = JSON.parse(msg) } catch(err) {/* (!) */}
-                        }
-                            
-                        if(xhr.status < 400) res.resolve(msg);
-                        else res.reject(msg,xhr.status);
-                    } else res.reject(msg); // status = 0 (timeout or Xdomain)           
+                        if(xhr.status < 400) res.resolve(xhr);
+                        else res.reject(xhr);
+                    } else res.reject(xhr); // status = 0 (timeout or Xdomain)           
                 break;
         }            
     }
+
+    /* response headers */
+    var headers;
+
+    Object.defineProperty(xhr,'headers',{
+        get: function(){
+            if(!headers) headers = parseHeaders(xhr.getAllResponseHeaders());
+            return headers;
+        }
+    });
 
     /* response timeout */
     if(options.timeout) { 
@@ -170,6 +156,20 @@ function Ajax(method,url,options,data,res) {
     xhr.send(data);
 
     return res;
+}
+
+function parseHeaders(h) {
+    var ret = Object.create(null), key, val, i;
+
+    h.split('\n').forEach(function(header) {
+        if((i=header.indexOf(':')) > 0) {
+            key = header.slice(0,i).replace(/^[\s]+|[\s]+$/g,'').toLowerCase();
+            val = header.slice(i+1,header.length).replace(/^[\s]+|[\s]+$/g,'');
+            if(key && key.length) ret[key] = val;
+        }   
+    });
+
+    return ret;
 }
 
 ['head','get','put','post','delete','patch','trace','connect','options']

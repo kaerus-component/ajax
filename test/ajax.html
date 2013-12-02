@@ -13,8 +13,8 @@
 		document.body.appendChild(text);
 		text.innerHMTL = "Loading text";
 
-		Ajax.get("test.file",{accept:'text/plain'}).then(function(content){
-			text.innerHTML = "Text Content: " + content;		
+		Ajax.get("test.file",{accept:'text/plain'}).then(function(res){
+			text.innerHTML = "Text Content: " + res.responseText;		
 		},function(error){
 			console.log("Error",error);
 			text.innerHTML = "Error: " + error;
@@ -24,9 +24,9 @@
 		document.body.appendChild(json);
 		json.innerHMTL = "Loading json";
 
-		Ajax.get("test.json",{accept:'application/json'}).then(function(content){
-			console.log("json:", content);
-			json.innerHTML = "JSON Content: " + JSON.stringify(content);		
+		Ajax.get("test.json",{accept:'application/json'}).then(function(res){
+			console.log("json:", JSON.parse(res.responseText);
+			json.innerHTML = "JSON Content: " + res.responseText;		
 		},function(error){
 			console.log("Error",error);
 			json.innerHTML = "Error: " + error;
@@ -36,8 +36,8 @@
 		document.body.appendChild(html);
 		html.innerHMTL = "Loading html";
 
-		Ajax.get("test.html",{accept:'text/html'}).then(function(content){
-			html.innerHTML = "HTML Content: " + content;		
+		Ajax.get("test.html",{accept:'text/html'}).then(function(res){
+			html.innerHTML = "HTML Content: " + res.responseText;		
 		},function(error){
 			console.log("Error",error);
 			html.innerHTML = "Error: " + error;
