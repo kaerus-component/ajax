@@ -94,10 +94,8 @@ function Ajax(method,url,options,data,res) {
     xhr.onreadystatechange = function() {
         switch(xhr.readyState) {
             case XHR_DONE:
-                    if(xhr.status){
-                        if(xhr.status < 400) res.resolve(xhr);
-                        else res.reject(xhr);
-                    } else res.reject(xhr); // status = 0 (timeout or Xdomain)           
+                if(xhr.status) res.resolve(xhr);
+                else res.reject(xhr); // status = 0 (timeout or Xdomain)           
                 break;
         }            
     }
@@ -139,7 +137,11 @@ function Ajax(method,url,options,data,res) {
 
     url = url.toString();
     
-    xhr.open(method,url,options.async);
+    try {
+        xhr.open(method,url,options.async);
+    } catch(error){
+        res.reject(error);
+    }
 
     /* todo: set CORS credentials */
 
@@ -149,11 +151,20 @@ function Ajax(method,url,options,data,res) {
     });
 
     /* stringify json */
-    if(data && typeof data !== 'string' && options.headers['content-type'].indexOf('json'))
-        data = JSON.stringify(data);
+    if(data && typeof data !== 'string' && options.headers['content-type'].indexOf('json')){
+        try {
+            data = JSON.stringify(data);
+        } catch(error) {
+            res.reject(err);
+        }
+    }
 
     /* request data */
-    xhr.send(data);
+    try {
+        xhr.send(data);
+    } catch(error){
+        res.reject(error);
+    }
 
     return res;
 }
