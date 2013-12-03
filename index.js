@@ -37,7 +37,7 @@ function Ajax(method,url,options,data,res) {
         data = null;
     }
 
-    options = options ? options : Object.create(null);
+    options = options ? options : {};
 
     if(typeof res === 'function') {
         var clb = res;
@@ -52,8 +52,8 @@ function Ajax(method,url,options,data,res) {
                 clb(0,x);
             } 
         }
-    } else {
-        res = res ? res : {
+    } else if(typeof res !== 'object') {
+        res = {
             resolve: function(x){ 
                 this.result = x;
                 if(this.onfulfill) this.onfulfill(x); 
@@ -70,14 +70,16 @@ function Ajax(method,url,options,data,res) {
                 this.onreject = r;
                 this.onprogress = p;
             }
-        }
-    }
+        };
+        /* must be async */
+        options.async = true;
+    } /* else resolve using res */
 
     if(options.async === undefined) options.async = true;
  
     if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
     
-    if(!options.headers) options.headers = Object.create(null);
+    if(!options.headers) options.headers = {};
     
     if(!options.headers.accept){
         options.headers.accept = options.accept||'application/json';
@@ -167,6 +169,18 @@ function Ajax(method,url,options,data,res) {
     }
 
     return res;
+}
+
+/* Object.create polyfill */
+if (!Object.create) {
+    Object.create = (function(){
+        function F(){}
+
+        return function(o){
+            F.prototype = o;
+            return new F();
+        }
+    })();
 }
 
 function parseHeaders(h) {
