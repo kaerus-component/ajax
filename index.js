@@ -37,7 +37,7 @@ function Ajax(method,url,options,data,res) {
         data = null;
     }
 
-    options = options ? options : {};
+    options = options ? options : Object.create(null);
 
     if(typeof res === 'function') {
         var clb = res;
@@ -63,7 +63,7 @@ function Ajax(method,url,options,data,res) {
                 if(this.onreject) this.onreject(x); 
             },
             progress: function(x){
-                if(this.onprogress) this.onprogress = x;
+                if(this.onprogress) this.onprogress(x);
             },
             when: function(f,r,p){
                 this.onfulfill = f;
@@ -73,11 +73,11 @@ function Ajax(method,url,options,data,res) {
         }
     }
 
-    if(!options.async) options.async = true;
+    if(options.async === undefined) options.async = true;
  
     if(!options.timeout) options.timeout = DEFAULT_TIMEOUT;
     
-    if(!options.headers) options.headers = {};
+    if(!options.headers) options.headers = Object.create(null);
     
     if(!options.headers.accept){
         options.headers.accept = options.accept||'application/json';
