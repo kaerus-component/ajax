@@ -149,7 +149,7 @@ function Ajax(method,url,options,data,res) {
     });
 
     /* stringify json */
-    if(data && typeof data !== 'string' && options.headers['content-type'].indexOf('json')){
+    if(data && typeof data !== 'string' && options.headers['content-type'].indexOf('json')>=0){
         try {
             data = JSON.stringify(data);
         } catch(error) {
