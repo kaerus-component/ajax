@@ -157,7 +157,7 @@ function Ajax(method,url,options,data,res) {
         try {
             data = JSON.stringify(data);
         } catch(error) {
-            res.reject(err);
+            res.reject(error);
         }
     }
 
