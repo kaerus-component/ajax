@@ -26,7 +26,7 @@ var XHR_CLOSED = 0,
     XHR_DONE = 4; 
 
 function Ajax(method,url,options,data,res) {
-    var xhr = new Xhr();
+    var xhr = new Xhr(), headers;
 
     if(typeof options === 'function'){
         res = options;
@@ -89,18 +89,29 @@ function Ajax(method,url,options,data,res) {
 
     if(options.charset) options.headers['accept-charset'] = options.charset;
 
-    xhr.onreadystatechange = function() {
-        switch(xhr.readyState) {
-            case XHR_DONE:
-                if(xhr.status) res.resolve(xhr);
-                else res.reject(xhr); // status = 0 (timeout or Xdomain)           
-                break;
-        }            
+    if("withCredentials" in xhr || typeof XDomainRequest != "undefined") {
+        
+        if(options.withCredentials === true)
+            xhr.withCredentials = true;
+
+        xhr.onload = function(){
+            res.resolve(xhr)
+        }
+        xhr.onerror = function(){
+            res.reject(xhr);
+        }
+    } else {
+        xhr.onreadystatechange = function() {
+            switch(xhr.readyState) {
+                case XHR_DONE:
+                    if(xhr.status) res.resolve(xhr);
+                    else res.reject(xhr); // status = 0 (timeout or Xdomain)           
+                    break;
+            }            
+        }
     }
 
-    /* response headers */
-    var headers;
-
+    /* getter for response headers */
     Object.defineProperty(xhr,'headers',{
         get: function(){
             if(!headers) headers = parseHeaders(xhr.getAllResponseHeaders());
@@ -140,8 +151,6 @@ function Ajax(method,url,options,data,res) {
     } catch(error){
         res.reject(error);
     }
-
-    /* todo: set CORS credentials */
 
     /* set request headers */
     Object.keys(options.headers).forEach(function(header) {
