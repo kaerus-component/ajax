@@ -4,17 +4,17 @@ var urlParser = require('urlparser');
 var DEFAULT_TIMEOUT = 5000;
 
 /* Get browser xhr object */
-var Xhr = (function() {  
+var Xhr = (function() {
     if(window.XDomainRequest) {
         return window.XDomainRequest;
     } else if(window.XMLHttpRequest) {
-        return window['XMLHttpRequest'];
+        return window.XMLHttpRequest;
     } else if(window.ActiveXObject) {
         ['Msxml2.XMLHTTP.6.0','Msxml2.XMLHTTP.3.0','Microsoft.XMLHTTP'].forEach(function(x) {
-            try { return window.ActiveXObject(x) } catch (e) {}
-        }); 
+            try { return window.ActiveXObject(x); } catch (e) {}
+        });
         throw new Error('XHR ActiveXObject failed');
-    } 
+    }
     throw new Error('XHR support not found');
 }());
 
@@ -23,7 +23,7 @@ var XHR_CLOSED = 0,
     XHR_OPENED = 1,
     XHR_SENT = 2,
     XHR_RECEIVED = 3,
-    XHR_DONE = 4; 
+    XHR_DONE = 4;
 
 function Ajax(method,url,options,data,res) {
     var xhr = new Xhr(), headers;
@@ -31,10 +31,10 @@ function Ajax(method,url,options,data,res) {
     if(typeof options === 'function'){
         res = options;
         options = null;
-        data = null;
+        data = undefined;
     } else if(typeof data === 'function'){
         res = data;
-        data = null;
+        data = undefined;
     }
 
     options = options ? options : {};
@@ -50,17 +50,17 @@ function Ajax(method,url,options,data,res) {
             },
             progress: function(x){
                 clb(0,x);
-            } 
-        }
+            }
+        };
     } else if(typeof res !== 'object') {
         res = {
-            resolve: function(x){ 
+            resolve: function(x){
                 this.result = x;
-                if(this.onfulfill) this.onfulfill(x); 
+                if(this.onfulfill) this.onfulfill(x);
             },
-            reject: function(x){ 
+            reject: function(x){
                 this.error = x;
-                if(this.onreject) this.onreject(x); 
+                if(this.onreject) this.onreject(x);
             },
             progress: function(x){
                 if(this.onprogress) this.onprogress(x);
@@ -69,46 +69,47 @@ function Ajax(method,url,options,data,res) {
                 this.onfulfill = f;
                 this.onreject = r;
                 this.onprogress = p;
-            }
+            },
+            then: this.when
         };
         /* must be async */
         options.async = true;
     } /* else resolve using res */
 
     if(options.async === undefined) options.async = true;
- 
+
     if(options.timeout === undefined) options.timeout = DEFAULT_TIMEOUT;
-    
+
     if(!options.headers) options.headers = {};
-    
+
     if(options.type || !options.headers['content-type'])
         options.headers['content-type'] = options.type||'application/json';
 
-    if(options.accept || !options.headers.accept) 
+    if(options.accept || !options.headers.accept)
         options.headers.accept = options.accept||'application/json';
 
     if(options.charset) options.headers['accept-charset'] = options.charset;
 
-    if("withCredentials" in xhr || typeof XDomainRequest != "undefined") {
-        
+    if("withCredentials" in xhr || XDomainRequest !== undefined) {
+
         if(options.withCredentials === true)
             xhr.withCredentials = true;
 
         xhr.onload = function(){
-            res.resolve(xhr)
-        }
+            res.resolve(xhr);
+        };
         xhr.onerror = function(){
             res.reject(xhr);
-        }
+        };
     } else {
         xhr.onreadystatechange = function() {
             switch(xhr.readyState) {
                 case XHR_DONE:
                     if(xhr.status) res.resolve(xhr);
-                    else res.reject(xhr); // status = 0 (timeout or Xdomain)           
+                    else res.reject(xhr); // status = 0 (timeout or Xdomain)
                     break;
-            }            
-        }
+            }
+        };
     }
 
     /* getter for response headers */
@@ -120,7 +121,7 @@ function Ajax(method,url,options,data,res) {
     });
 
     /* response timeout */
-    if(options.timeout) { 
+    if(options.timeout) {
         setTimeout(function(){
             xhr.abort();
         }, options.timeout);
@@ -131,12 +132,12 @@ function Ajax(method,url,options,data,res) {
         xhr.upload.onprogress = function(e){
             e.percent = e.loaded / e.total * 100;
             res.progress(e);
-        }
+        };
     }
 
     /* parse url */
     url = urlParser.parse(url);
-    
+
     if(!url.host) url.host = {};
 
     /* merge host info with options */
@@ -145,11 +146,13 @@ function Ajax(method,url,options,data,res) {
     if(!url.host.port && options.port) url.host.port = options.port;
 
     url = url.toString();
-    
+
     try {
         xhr.open(method,url,options.async);
     } catch(error){
+        xhr = null;
         res.reject(error);
+        return res;
     }
 
     /* set request headers */
@@ -157,19 +160,29 @@ function Ajax(method,url,options,data,res) {
         xhr.setRequestHeader(header,options.headers[header]);
     });
 
-    /* stringify json */
-    if(data && typeof data !== 'string' && options.headers['content-type'].indexOf('json')>=0){
+    /* stringify data */
+    if(data === undefined) data = null;
+    else if(data !== null && typeof data !== 'string' && options.headers['content-type'].match('json')){
         try {
             data = JSON.stringify(data);
         } catch(error) {
+            xhr = null;
             res.reject(error);
+            return res;
         }
     }
 
-    /* request data */
+    /* send http request */
     try {
         xhr.send(data);
+
+        /* sync mode */
+        if(!options.async){
+            if(xhr.status) res.resolve(xhr);
+            else res.reject(xhr);
+        }
     } catch(error){
+        xhr = null;
         res.reject(error);
     }
 
@@ -184,7 +197,7 @@ if (!Object.create) {
         return function(o){
             F.prototype = o;
             return new F();
-        }
+        };
     })();
 }
 
@@ -196,7 +209,7 @@ function parseHeaders(h) {
             key = header.slice(0,i).replace(/^[\s]+|[\s]+$/g,'').toLowerCase();
             val = header.slice(i+1,header.length).replace(/^[\s]+|[\s]+$/g,'');
             if(key && key.length) ret[key] = val;
-        }   
+        }
     });
 
     return ret;
@@ -206,7 +219,7 @@ function parseHeaders(h) {
     .forEach(function(method) {
         Ajax[method] = function(url,options,data,res) {
             return Ajax(method,url,options,data,res);
-        }
+        };
     });
 
 module.exports = Ajax;

@@ -1,7 +1,5 @@
-ajax
+Ajax
 ====
-
-Promised Ajax
 
 License
 =======
